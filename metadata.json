@@ -1,0 +1,6 @@
+
+{
+  "name": "CondoMaster ERP v2.5",
+  "description": "Sistema de gestión de condominios con integración Supabase y modo offline inteligente. Incluye recaudación, nómina chilena y cuadrante de turnos.",
+  "requestFramePermissions": []
+}
