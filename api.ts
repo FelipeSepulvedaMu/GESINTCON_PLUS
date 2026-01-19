@@ -1,18 +1,17 @@
 import { VisitRecord, House, User } from './types';
 
 /**
- * URL del backend definida en Vercel
- * Ejemplo:
- * VITE_API_URL = https://gesintcon-plus-backend.duckdns.org/api
+ * URL del backend (Vercel / Vite)
+ * Ej: https://gesintcon-plus-backend.duckdns.org/api
  */
 const API_URL = import.meta.env.VITE_API_URL;
 
 if (!API_URL) {
-  throw new Error('❌ VITE_API_URL no está definida en el entorno');
+  throw new Error('VITE_API_URL no está definida en el entorno');
 }
 
 /**
- * Manejo estándar de respuestas HTTP
+ * Manejo seguro de respuestas
  */
 async function handleResponse(response: Response) {
   const contentType = response.headers.get('content-type');
@@ -32,39 +31,18 @@ async function handleResponse(response: Response) {
   throw new Error(`Error del servidor (${response.status})`);
 }
 
-/**
- * API pública del frontend
- */
 export const api = {
   /**
    * LOGIN
    * Backend real: POST /api/login
    */
-  async login(rut: string, password: string): Promise<User> {
+  async login(email: string, password: string): Promise<User> {
     const response = await fetch(`${API_URL}/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ rut, password })
+      body: JSON.stringify({ email, password })
     });
 
     return handleResponse(response);
-  },
-
-  /**
-   * USUARIOS / CASAS
-   * Backend real: GET /api/users
-   */
-  async getHouses(): Promise<House[]> {
-    const response = await fetch(`${API_URL}/users`);
-    return handleResponse(response);
   }
-
-  /*
-   * ⚠️ Las siguientes funciones NO existen en este backend
-   * Si las necesitas, deben implementarse en routes.ts
-   *
-   * - visits
-   * - createVisit
-   * - getVisits
-   */
 };
