@@ -1,72 +1,102 @@
+import { VisitRecord, House, User } from './types';
 
 /**
- * CONFIGURACIÓN DE CONEXIÓN
- * Este archivo vive en el FRONTEND y se comunica con el BACKEND.
+ * URL del backend definida por entorno (Vercel)
  */
-const LOCAL_BACKEND_URL = 'http://localhost:3001/api';
+const API_URL = import.meta.env.VITE_API_URL;
+
+if (!API_URL) {
+  throw new Error('VITE_API_URL no está definida en el entorno');
+}
 
 /**
- * Manejador central de peticiones
- * Centraliza la lógica de fetch y manejo de errores.
+ * Manejo seguro de respuestas
  */
-const handleRequest = async (endpoint: string, method: string, payload: any = null) => {
-  try {
-    const options: RequestInit = {
-      method,
-      headers: { 'Content-Type': 'application/json' },
-    };
+async function handleResponse(response: Response) {
+  const contentType = response.headers.get('content-type');
 
-    if (payload) {
-      options.body = JSON.stringify(payload);
-    }
+  if (contentType && contentType.includes('application/json')) {
+    const data = await response.json();
 
-    console.log(`📡 Enviando petición a: ${LOCAL_BACKEND_URL}${endpoint}`);
-    const response = await fetch(`${LOCAL_BACKEND_URL}${endpoint}`, options);
-    
     if (!response.ok) {
-      if (response.status === 401) return null;
-      const errorData = await response.json().catch(() => ({}));
-      console.error(`🔴 Error en respuesta (${response.status}):`, errorData);
-      return null;
+      throw new Error(data.message || data.error || `Error ${response.status}`);
     }
 
-    if (response.status === 204) return true;
-    
-    return await response.json();
-  } catch (e) {
-    console.error(`🔴 Error de red conectando con el Backend en ${endpoint}. ¿Está el servidor corriendo en el puerto 3001?`, e);
-    return null;
+    return data;
   }
-};
+
+  const text = await response.text();
+  console.error('Respuesta no-JSON del servidor:', text.substring(0, 200));
+
+  if (response.status === 404) {
+    throw new Error(`Error 404: ruta no encontrada en ${API_URL}`);
+  }
+
+  throw new Error(`Error del servidor (${response.status})`);
+}
+
+/**
+ * Mapeo de visitas
+ */
+const mapVisit = (v: any): VisitRecord => ({
+  id: v.id,
+  date: v.date,
+  houseNumber: v.house_number || v.houseNumber,
+  residentName: v.resident_name || v.residentName,
+  type: v.type,
+  visitorName: v.visitor_name || v.visitorName,
+  visitorRut: v.visitor_rut || v.visitorRut,
+  plate: v.plate,
+  conciergeName: v.concierge_name || v.conciergeName
+});
 
 export const api = {
-  login: async (email: string, pass: string) => handleRequest('/login', 'POST', { email, password: pass }),
-  getHouses: () => handleRequest('/users', 'GET'),
-  updateHouse: (id: string, data: any) => handleRequest(`/users/${id}`, 'PUT', data),
-  getPayments: () => handleRequest('/reports/payments', 'GET'),
-  createPayment: (data: any) => handleRequest('/reports/payments', 'POST', data),
-  deletePayment: (id: string) => handleRequest(`/reports/payments/${id}`, 'DELETE'),
-  getMeetings: () => handleRequest('/reports/meetings', 'GET'),
-  createMeeting: (data: any) => handleRequest('/reports/meetings', 'POST', data),
-  updateMeeting: (id: string, data: any) => handleRequest(`/reports/meetings/${id}`, 'PUT', data),
-  deleteMeeting: (id: string) => handleRequest(`/reports/meetings/${id}`, 'DELETE'),
-  getExpenses: () => handleRequest('/reports/expenses', 'GET'),
-  createExpense: (data: any) => handleRequest('/reports/expenses', 'POST', data),
-  deleteExpense: (id: string) => handleRequest(`/reports/expenses/${id}`, 'DELETE'),
-  getEmployees: () => handleRequest('/reports/employees', 'GET'),
-  createEmployee: (data: any) => handleRequest('/reports/employees', 'POST', data),
-  updateEmployee: (id: string, data: any) => handleRequest(`/reports/employees/${id}`, 'PUT', data),
-  getVacations: () => handleRequest('/reports/vacations', 'GET'),
-  createVacation: (data: any) => handleRequest('/reports/vacations', 'POST', data),
-  deleteVacation: (id: string) => handleRequest(`/reports/vacations/${id}`, 'DELETE'),
-  getLeaves: () => handleRequest('/reports/leaves', 'GET'),
-  createLeave: (data: any) => handleRequest('/reports/leaves', 'POST', data),
-  deleteLeave: (id: string) => handleRequest(`/reports/leaves/${id}`, 'DELETE'),
-  getFees: () => handleRequest('/products', 'GET'),
-  createFee: (data: any) => handleRequest('/products', 'POST', data),
-  updateFee: (id: string, data: any) => handleRequest(`/products/${id}`, 'PUT', data),
-  deleteFee: (id: string) => handleRequest(`/products/${id}`, 'DELETE'),
-  getLogs: (employeeId: string) => handleRequest(`/reports/logs?employeeId=${employeeId}`, 'GET'),
-  getShifts: (startDate?: string) => handleRequest(`/reports/shifts${startDate ? `?startDate=${startDate}` : ''}`, 'GET'),
-  saveShifts: (startDate: string, assignments: any) => handleRequest('/reports/shifts', 'POST', { startDate, assignments })
+  async login(rut: string, password: string): Promise<User> {
+    const response = await fetch(`${API_URL}/login-visit`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ rut, password })
+    });
+
+    return handleResponse(response);
+  },
+
+  async getHouses(): Promise<House[]> {
+    try {
+      const response = await fetch(`${API_URL}/visits/houses`);
+      const data = await handleResponse(response);
+
+      return data.map((h: any) => ({
+        id: h.id,
+        number: h.number,
+        residentName: h.owner_name || h.resident_name || 'Sin nombre',
+        phone: h.phone || ''
+      }));
+    } catch (error) {
+      console.error('Error API getHouses:', error);
+      return [];
+    }
+  },
+
+  async getVisits(date: string): Promise<VisitRecord[]> {
+    try {
+      const response = await fetch(`${API_URL}/visits?date=${date}`);
+      const data = await handleResponse(response);
+      return data.map(mapVisit);
+    } catch (error) {
+      console.error('Error API getVisits:', error);
+      return [];
+    }
+  },
+
+  async createVisit(visit: Partial<VisitRecord>): Promise<VisitRecord> {
+    const response = await fetch(`${API_URL}/visits`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(visit)
+    });
+
+    const result = await handleResponse(response);
+    return mapVisit(result);
+  }
 };
