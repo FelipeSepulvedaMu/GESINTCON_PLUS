@@ -6,11 +6,11 @@ import { VisitRecord, House, User } from './types';
 const API_URL = import.meta.env.VITE_API_URL;
 
 if (!API_URL) {
-  throw new Error('VITE_API_URL no está definida en el entorno');
+  throw new Error('VITE_API_URL no está definida en el entorno REVISAR');
 }
 
 /**
- * Manejo seguro de respuestas
+ * Manejo seguro de respuestas 
  */
 async function handleResponse(response: Response) {
   const contentType = response.headers.get('content-type');
