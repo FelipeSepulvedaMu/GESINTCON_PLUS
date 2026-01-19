@@ -1,16 +1,17 @@
 import { VisitRecord, House, User } from './types';
 
 /**
- * URL del backend definida por entorno (Vercel)
+ * URL del backend (Vercel / Vite)
+ * Ej: https://gesintcon-plus-backend.duckdns.org/api
  */
 const API_URL = import.meta.env.VITE_API_URL;
 
 if (!API_URL) {
-  throw new Error('VITE_API_URL no está definida en el entorno REVISAR');
+  throw new Error('VITE_API_URL no está definida en el entorno');
 }
 
 /**
- * Manejo seguro de respuestas 
+ * Manejo seguro de respuestas
  */
 async function handleResponse(response: Response) {
   const contentType = response.headers.get('content-type');
@@ -27,11 +28,6 @@ async function handleResponse(response: Response) {
 
   const text = await response.text();
   console.error('Respuesta no-JSON del servidor:', text.substring(0, 200));
-
-  if (response.status === 404) {
-    throw new Error(`Error 404: ruta no encontrada en ${API_URL}`);
-  }
-
   throw new Error(`Error del servidor (${response.status})`);
 }
 
@@ -51,8 +47,12 @@ const mapVisit = (v: any): VisitRecord => ({
 });
 
 export const api = {
+  /**
+   * LOGIN
+   * Backend real: /api/visits/login
+   */
   async login(rut: string, password: string): Promise<User> {
-    const response = await fetch(`${API_URL}/login-visit`, {
+    const response = await fetch(`${API_URL}/visits/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ rut, password })
@@ -62,31 +62,14 @@ export const api = {
   },
 
   async getHouses(): Promise<House[]> {
-    try {
-      const response = await fetch(`${API_URL}/visits/houses`);
-      const data = await handleResponse(response);
-
-      return data.map((h: any) => ({
-        id: h.id,
-        number: h.number,
-        residentName: h.owner_name || h.resident_name || 'Sin nombre',
-        phone: h.phone || ''
-      }));
-    } catch (error) {
-      console.error('Error API getHouses:', error);
-      return [];
-    }
+    const response = await fetch(`${API_URL}/visits/houses`);
+    return handleResponse(response);
   },
 
   async getVisits(date: string): Promise<VisitRecord[]> {
-    try {
-      const response = await fetch(`${API_URL}/visits?date=${date}`);
-      const data = await handleResponse(response);
-      return data.map(mapVisit);
-    } catch (error) {
-      console.error('Error API getVisits:', error);
-      return [];
-    }
+    const response = await fetch(`${API_URL}/visits?date=${date}`);
+    const data = await handleResponse(response);
+    return data.map(mapVisit);
   },
 
   async createVisit(visit: Partial<VisitRecord>): Promise<VisitRecord> {
