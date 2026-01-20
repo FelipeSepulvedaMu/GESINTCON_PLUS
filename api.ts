@@ -81,7 +81,7 @@ export const api = {
   // --- LICENCIAS ---
   getLeaves: () => handleRequest('/reports/leaves', 'GET'),
   createLeave: (data: any) => handleRequest('/reports/leaves', 'POST', data),
-  deleteLeave: (id: string) => handleRequest(`/reports/leaves/${id}`, 'DELETE`),
+  deleteLeave: (id: string) => handleRequest(`/reports/leaves/${id}`, 'DELETE'),
 
   // --- TURNOS / SHIFTS ---
   getShifts: (startDate?: string) =>
