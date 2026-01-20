@@ -1,11 +1,12 @@
 /**
  * CONFIGURACIÓN DE CONEXIÓN API - GESINTCON PLUS
- * Este archivo centraliza todas las peticiones al Backend Modular.
+ * Centraliza todas las peticiones al Backend Modular.
+ * Solo producción.
  */
 const API_URL = import.meta.env.VITE_API_URL;
 
 if (!API_URL) {
-  throw new Error('VITE_API_URL no está definida en el entorno');
+  throw new Error('VITE_API_URL no está definida en el entorno de producción');
 }
 
 /**
@@ -38,8 +39,8 @@ const handleRequest = async (endpoint: string, method: string, payload: any = nu
     if (response.status === 204) return true; // DELETE
     return await response.json();
   } catch (e) {
-    console.error(`🔴 Error de red en ${endpoint}: ¿Está el backend encendido?`, e);
-    return null;
+    console.error(`🔴 Error de red en ${endpoint}: ¿Está el backend accesible?`, e);
+    throw e;
   }
 };
 
@@ -56,13 +57,13 @@ export const api = {
   createPayment: (data: any) => handleRequest('/reports/payments', 'POST', data),
   deletePayment: (id: string) => handleRequest(`/reports/payments/${id}`, 'DELETE'),
 
-  // --- REUNIONES / MEETINGS ---
+  // --- REUNIONES ---
   getMeetings: () => handleRequest('/reports/meetings', 'GET'),
   createMeeting: (data: any) => handleRequest('/reports/meetings', 'POST', data),
   updateMeeting: (id: string, data: any) => handleRequest(`/reports/meetings/${id}`, 'PUT', data),
   deleteMeeting: (id: string) => handleRequest(`/reports/meetings/${id}`, 'DELETE'),
 
-  // --- GASTOS / EXPENSES ---
+  // --- GASTOS ---
   getExpenses: () => handleRequest('/reports/expenses', 'GET'),
   createExpense: (data: any) => handleRequest('/reports/expenses', 'POST', data),
   deleteExpense: (id: string) => handleRequest(`/reports/expenses/${id}`, 'DELETE'),
@@ -77,10 +78,16 @@ export const api = {
   createVacation: (data: any) => handleRequest('/reports/vacations', 'POST', data),
   deleteVacation: (id: string) => handleRequest(`/reports/vacations/${id}`, 'DELETE'),
 
-  // --- LICENCIAS / LEAVES ---
+  // --- LICENCIAS ---
   getLeaves: () => handleRequest('/reports/leaves', 'GET'),
   createLeave: (data: any) => handleRequest('/reports/leaves', 'POST', data),
-  deleteLeave: (id: string) => handleRequest(`/reports/leaves/${id}`, 'DELETE'),
+  deleteLeave: (id: string) => handleRequest(`/reports/leaves/${id}`, 'DELETE`),
+
+  // --- TURNOS / SHIFTS ---
+  getShifts: (startDate?: string) =>
+    handleRequest(`/reports/shifts${startDate ? `?startDate=${startDate}` : ''}`, 'GET'),
+  saveShifts: (startDate: string, assignments: any) =>
+    handleRequest('/reports/shifts', 'POST', { startDate, assignments }),
 
   // --- PRODUCTOS / FEES ---
   getFees: () => handleRequest('/products', 'GET'),
@@ -90,10 +97,4 @@ export const api = {
 
   // --- LOGS ---
   getLogs: (employeeId: string) => handleRequest(`/reports/logs?employeeId=${employeeId}`, 'GET'),
-
-  // --- TURNOS / SHIFTS ---
-  getShifts: (startDate?: string) =>
-    handleRequest(`/reports/shifts${startDate ? `?startDate=${startDate}` : ''}`, 'GET'),
-  saveShifts: (startDate: string, assignments: any) =>
-    handleRequest('/reports/shifts', 'POST', { startDate, assignments })
 };
