@@ -4,12 +4,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GESINTCON - Gestión de Condominios</title>
+    <title>CondoMaster - Gestión de Condominios</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <!-- Google API Scripts -->
-    <script src="https://accounts.google.com/gsi/client" async defer></script>
-    <script src="https://apis.google.com/js/api.js" async defer></script>
     <style>
         body { font-family: 'Inter', sans-serif; }
     </style>
@@ -24,17 +21,17 @@
     "react-router-dom": "https://esm.sh/react-router-dom@^7.11.0",
     "jspdf": "https://esm.sh/jspdf@^2.5.1",
     "jspdf-autotable": "https://esm.sh/jspdf-autotable@^3.8.2",
-    "fs": "https://esm.sh/fs@^0.0.1-security",
+    "@supabase/supabase-js": "https://esm.sh/@supabase/supabase-js@^2.89.0",
+    "dotenv": "https://esm.sh/dotenv@^17.2.3",
     "path": "https://esm.sh/path@^0.12.7",
+    "nodemailer": "https://esm.sh/nodemailer@^7.0.12",
     "express": "https://esm.sh/express@^5.2.1",
     "cors": "https://esm.sh/cors@^2.8.5"
   }
 }
 </script>
-<link rel="stylesheet" href="/index.css">
 </head>
 <body class="bg-slate-50 text-slate-900">
     <div id="root"></div>
-<script type="module" src="/index.tsx"></script>
 </body>
 </html>
