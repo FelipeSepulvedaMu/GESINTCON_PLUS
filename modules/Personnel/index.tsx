@@ -498,7 +498,7 @@ const Personnel: React.FC = () => {
                             >
                               <option value="Conserje">Conserje</option>
                               <option value="Administrador">Administrador</option>
-                              <option value="Seguridad">Seguridad</option>
+                              <option value="Mantención">Mantención</option>
                             </select>
                           </div>
                         </div>
@@ -641,7 +641,7 @@ const Personnel: React.FC = () => {
                       <select className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl font-black uppercase text-[10px]" value={newEmployee.role} onChange={(e) => setNewEmployee({...newEmployee, role: e.target.value})}>
                         <option value="Conserje">Conserje</option>
                         <option value="Administrador">Administrador</option>
-                        <option value="Seguridad">Seguridad</option>
+                        <option value="Mantención">Mantención</option>
                       </select>
                    </div>
                 ) : (
